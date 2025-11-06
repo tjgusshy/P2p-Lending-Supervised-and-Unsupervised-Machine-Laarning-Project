@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -17,7 +18,7 @@ st.set_page_config(
 # ============================================================
 @st.cache_data
 def load_data():
-    df = pd.read_csv("P2p-Lending-Supervised-and-Unsupervised-Machine-Laarning-Project/borrower_clusters.csv")
+    df = pd.read_csv("borrower_clusters_with_pd.csv")
     return df
 
 df = load_data()
