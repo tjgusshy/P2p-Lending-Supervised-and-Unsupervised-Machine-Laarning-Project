@@ -4,18 +4,18 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# ============================================================
+# 
 # Page Configuration
-# ============================================================
+# 
 st.set_page_config(
     page_title="P2P Investment Dashboard",
     page_icon="💰",
     layout="wide"
 )
 
-# ============================================================
+# 
 # Data Loading
-# ============================================================
+# 
 @st.cache_data
 def load_data():
     df = pd.read_csv("borrower_clusters_with_pd.csv")
@@ -23,16 +23,16 @@ def load_data():
 
 df = load_data()
 
-# ============================================================
+# 
 # Header
-# ============================================================
+# 
 st.title("💰 P2P Lending Investment Dashboard")
 st.markdown("**Investment decision support system for peer-to-peer lending**")
 st.divider()
 
-# ============================================================
+# 
 # Sidebar Filters
-# ============================================================
+# 
 st.sidebar.header("🎯 Investment Filters")
 
 # Risk level filter
@@ -89,9 +89,9 @@ filtered_df = df[
     (df['pd_score'] <= pd_range[1])
 ]
 
-# ============================================================
+# 
 # Key Performance Indicators
-# ============================================================
+# 
 st.subheader("📊 Investment Overview")
 
 col1, col2, col3, col4, col5 = st.columns(5)
@@ -105,7 +105,7 @@ with col2:
     st.metric("Avg Loan Amount", f"${avg_loan_amount:,.0f}")
 
 with col3:
-    avg_interest = filtered_df['interest_rate'].mean()
+    avg_interest = filtered_df['interest_rate']
     st.metric("Avg Interest Rate", f"{avg_interest:.2f}%")
 
 with col4:
@@ -118,9 +118,9 @@ with col5:
 
 st.divider()
 
-# ============================================================
+# 
 # Investment Analysis Charts
-# ============================================================
+# 
 col1, col2 = st.columns(2)
 
 with col1:
@@ -155,9 +155,9 @@ with col2:
     fig_scatter.update_layout(height=300)
     st.plotly_chart(fig_scatter, use_container_width=True)
 
-# ============================================================
+# 
 # Investment Recommendations
-# ============================================================
+# 
 st.subheader("💡 Investment Recommendations")
 
 col1, col2, col3 = st.columns(3)
@@ -197,9 +197,9 @@ with col3:
 
 st.divider()
 
-# ============================================================
+# 
 # Portfolio Analysis
-# ============================================================
+# 
 st.subheader("📈 Portfolio Analysis")
 
 col1, col2 = st.columns(2)
@@ -230,9 +230,9 @@ with col2:
     fig_violin.update_layout(height=350, showlegend=False)
     st.plotly_chart(fig_violin, use_container_width=True)
 
-# ============================================================
+# 
 # Risk Metrics Table
-# ============================================================
+# 
 st.subheader("📋 Risk Metrics Summary")
 
 risk_summary = filtered_df.groupby('risk_level').agg({
@@ -245,9 +245,9 @@ risk_summary = filtered_df.groupby('risk_level').agg({
 risk_summary.columns = ['Count', 'Avg Loan ($)', 'Total Pool ($)', 'Avg Rate (%)', 'Avg PD Score', 'Avg Income ($)']
 st.dataframe(risk_summary, use_container_width=True)
 
-# ============================================================
+# 
 # Investment Decision Support
-# ============================================================
+# 
 st.subheader("🎯 Investment Decision Guide")
 
 if total_loans > 0:
@@ -280,9 +280,9 @@ if total_loans > 0:
 
 st.divider()
 
-# ============================================================
+# 
 # Top Opportunities
-# ============================================================
+# 
 st.subheader("🏆 Top Investment Opportunities")
 
 # Best low risk loans (high interest, low PD)

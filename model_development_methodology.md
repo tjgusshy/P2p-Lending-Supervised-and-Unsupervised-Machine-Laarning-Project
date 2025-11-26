@@ -1,488 +1,338 @@
-# Chapter 3: Model Development Methodology
 
-## 3.1 Introduction
+Chapter 3: Research Methodology
+3.1 Introduction
+This study uses a hybrid quantitative methodology, combining supervised and unsupervised machine learning techniques, to create a comprehensive credit risk assessment and borrower segmentation framework for the peer-to-peer (P2P) lending industry. The major goal is to move beyond typical default prediction by developing a dual-layered analytical model. The first layer uses a supervised classification model to calculate an individual borrower's Probability of Default (PD). The second layer uses these PD ratings and other borrower variables in an unsupervised clustering model to find separate, actionable borrower segments. This hybrid method, as shown in Figure 3.1, enables both detailed risk assessment at the individual and will increase profits for lenders.
+ 
 
-This chapter presents a comprehensive methodology for developing and evaluating credit risk classification models for peer-to-peer lending. The approach implements supervised machine learning techniques with rigorous validation protocols to ensure model reliability and generalization capability. The methodology addresses critical challenges in credit risk modelling, including class imbalance, feature heterogeneity, and model interpretability.
+Figure 1: Hybrid Methodological Framework
 
-## 3.2 Target Variable and Feature Engineering
 
-### 3.2.1 Target Variable Definition
 
-The binary classification target variable `loan_grade_status` was defined to represent loan outcome:
-- **Class 0 (Paid)**: Loans that were successfully repaid
-- **Class 1 (Default)**: Loans that defaulted or were charged off
+3.2 Research Design and Philosophical Approach
+The study adopts a quantitative research design grounded in the positivist paradigm, which emphasizes objective measurement and empirical validation (Saunders, Lewis, & Thornhill, 2019). Positivism is appropriate for this research because the aim is to identify statistically significant patterns in borrower behaviour using numerical data, rather than interpret subjective experiences.
+This framework ensures methodological rigour, reproducibility, and transparency, aligning with academic and professional data science standards.
+The following steps was followed:
+1.	Business understanding – defining the problem (credit risk prediction and segmentation).
+2.	Data understanding – exploring and preparing LendingClub data.
+3.	Data preparation – cleaning, feature engineering, and transforming inputs.
+4.	Modelling – applying Classication algorithms and Segmentation algorithms.
+5.	Evaluation – assessing model accuracy and interpretability.
+6.	Deployment – developing a Streamlit-based decision-support dashboard.
 
-The target variable was extracted from the prepared dataset `df_model`, which underwent preprocessing and feature engineering as described in Chapter 2.
 
-### 3.2.2 Feature Type Identification
 
-Features were systematically categorized into two groups based on their data types:
 
-**Numeric Features**: Continuous and discrete quantitative variables including:
-- Financial metrics (annual income, loan amount, interest rate)
-- Credit history indicators (delinquency counts, inquiries)
-- Debt ratios and payment-to-income metrics
-- Employment length (in months)
 
-**Categorical Features**: Nominal variables representing:
-- Homeownership status (rent, mortgage, own)
-- Income verification status
-- Loan purpose categories
-- Application type (individual vs joint)
-- Geographic region
 
-This dual-type feature structure necessitates distinct preprocessing pipelines, as categorical variables require encoding while numeric variables require standardization (Géron, 2019).
 
-### 3.2.3 Class Distribution Analysis
 
-Prior to model development, the target variable distribution was examined to quantify class imbalance. The analysis revealed a significant imbalance between paid and defaulted loans, which is characteristic of credit risk datasets where defaults are minority events (Hand and Henley, 1997). This imbalance requires specialized handling to prevent model bias toward the majority class.
 
-## 3.3 Data Partitioning Strategy
 
-### 3.3.1 Stratified Train-Test Split
+
+
+3.3.1 Structure and Composition of the Dataset
+The dataset used in this study originates from the LendingClub public loan dataset, one of the largest and most widely analysed P2P lending datasets in financial research (Jagtiani & Lemieux, 2019; Ko, Kim, & Lee, 2022). It provides detailed information about borrower characteristics, loan attributes, and repayment outcomes.
+For the purpose of this project, the dataset was filtered to include only individual borrowers (approximately 80% of all records) and loan amounts ≤ $40,000. This subset represents typical retail lending scenarios on P2P platforms and focuses on transactions most relevant to small investors.The dataset includes 55 variables covering borrower characteristics, loan attributes, credit history, repayment indicators and behavioural factors. These include:
+Borrower characteristics
+annual income, homeownership status, employment title, employment length, verification status, and debt-to-income ratio. 
+Credit history variables
+delinquencies, credit lines, utilisation behaviour, public records, collections, number of satisfactory accounts and past due information.
+Loan attributes
+loan amount, interest rate, grade, sub grade, term, loan purpose, disbursement method and application type
+Repayment performance indicators
+loan status, paid principal, paid interest, late fees and outstanding balance. Loan status categories include fully paid, charged off and current
+ 
+Figure 2: Shape of the dataset.
+
+
+3.3.2 Target Variable Considerations
+The loan status variable presented significant class imbalance, with less than 2% defaults and 98% non-defaults. The class imbalance problem is of crucial importance since it is encountered by a large number of domains of great environmental, vital or commercial importance, and was shown, in certain cases, to cause a significant bottleneck in the performance attainable by standard learning methods which assume a balanced distribution of the classes (Japkowicz, 2000, p. 111). To mitigate this, credit grade (A to G) was used, which is also highly imbalanced but better than loan status,  82% for non-defaults and 18% for defaults, as shown in the image below.
+
+ 
+
+ 
+ Figure 4.  Loan grade Imbalance Ratio
+ 
+Figure 3.  Loan status Imbalance Ratio
+
+
+
+
+
+
+
+
+3.3.4 Data Cleaning and Preprocessing
+Handling Missing Values: For  NAS and other null values, they were all replaced with np.nan
+ 
+Figure 5: Function for replacing NAS
+
+
+
+
+
+
+
+
+
+Replacing badly written data in numeric columns by using pandas to coerce them into numeric variables, which replaces every non numeric variables 
+ Figure 6: Shape of the dataset.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3.3.5 Feature Engineering
+To enhance the predictive power of the models, several new features were engineered:
+Job Title Categorization: The `emp_title` feature, containing high cardinality, was condensed into a smaller set.
+ 
+Figure 7: Job category mapping
+
+
+
+
+
+
+Geographical Binning: The `state` feature was mapped into broader geographical `region` categories (e.g., 'Northeast', 'West') to capture regional economic trends without overfitting to individual states.
+ 
+Figure 8: State mapping to region
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3.3.6 Outlier and Feature Selection
+Outlier Treatment: The Winsorization technique was applied to numerical columns identified as having significant outliers. This approach involves modifying the weights of outliers or replacing the values being tested for outliers with expected values. The weight modification method allows weight modification without discarding or replacing the values of outliers, limiting the influence of the outliers.  (Kwak and Kim, 2017).
+ 
+Figure 17: Winsorization of outliers.
+
+
+
+
+
+
+
+
+
+Feature Selection: A multi-step feature selection process was implemented to create a quality and good feature set.
+ Leakage Prevention: Features that would not be available at the time of a loan application (e.g., `paid_principal`, `last_pymnt_amnt`) were removed to prevent data leakage.
+ 
+Figure 18: Possible columns that can cause leakage.
+Multicollinearity Reduction: A correlation matrix was computed for all numeric features. For any pair of features with a correlation coefficient exceeding a threshold of 80% and they were dropped to improve the predictability of the algorithms used.
+ 
+Figure 19: Identification of highly correlated variables.
+
+ 
+Figure 20: Correlation heatmap 
+
+
+ 
+Figure 20: Removal of highly correlated variables.
+
+
+
+
+
+
+
+
+
+
+
+3.4 Supervised Learning: Probability of Default (PD) Estimation
+The first stage is developing a supervised classification model to assign a PD score to each borrower. The approach followed a strict, a process that reduced overfitting, ensured pipeline robustness, and allowed for systematic model comparison. 
+
+ 
+Figure 20: Removal of highly correlated variables.
+3.4.1 Model Selection and Baseline Establishment
+Four standard classification algorithms was used to establish a performance baseline:
+Logistic Regression
+Logistic regression is used to obtain odds ratio in the presence of more than one explanatory variable. The procedure is quite similar to multiple linear regression, with the exception that the response variable is binomial. The result is the impact of each variable on the odds ratio of the observed event of interest. The main advantage is to avoid confounding effects by analysing the association of all variables together (Sperandei, 2014). 
+
+Random Forest
+Random forests are a combination of tree predictors such that each tree depends on the values of a random vector sampled independently and with the same distribution for all trees in the forest. The generalization error for forests converges a.s. to a limit as the number of trees in the forest becomes large (Breiman, 2001).
+Gradient Boosting
+Gradient boosting machines are a family of powerful machine-learning techniques that have shown considerable success in a wide range of practical applications. They are highly customizable to the particular needs of the application, like being learned with respect to different loss functions(Natekin and Knoll, 2013).
+XGBoost
+XGBoost is a powerful and efficient learning method based on an implementation of gradient‐boosted decision trees. It is typically used for supervised learning tasks, particularly regression and classification problems. At a high level, XGBoost works by combining weak learners, such as decision trees, sequentially, with each new learner effectively correcting errors made by the previous ones. Similar to other supervised learning methods, such as neural networks, XGBoost seeks to minimize a loss function, such as mean squared error for regression problems or crossentropy loss for classification problems. (Wiens et al., 2025).
+
+
+3.3 Data Partitioning Strategy
+
+3.3.1 Stratified Train-Test Split
 
 A stratified random sampling approach was employed to partition the dataset:
-
-```
 Train Set: 80% of observations
 Test Set: 20% of observations
 Random Seed: 42 (for reproducibility)
-Stratification: By target variable
-```
+The test set serves as a held-out validation set that remains unseen during model training and hyperparameter tuning, providing an unbiased estimate of generalization performance
 
-**Rationale for Stratification**: Stratified sampling ensures that both training and test sets maintain the same proportion of defaulted to paid loans as the original dataset (Kohavi, 1995). This is critical for:
-1. Preventing sampling bias in the minority class
-2. Ensuring representative performance estimates
-3. Maintaining statistical power for model evaluation
+All models in this study were implemented using the scikit-learn library, which provides a high-level, consistent interface for modern machine learning algorithms and preprocessing tools. Scikit-learn is designed to make state-of-the-art machine learning accessible and reproducible by integrating preprocessing, model fitting, evaluation, and pipeline management within a unified API (Pedregosa et al., 2011). This ensured that numerical scaling, categorical encoding, cross-validation, and hyperparameter tuning were performed in a structured and reproducible manner.
+The models were implemented within a `scikit-learn` Pipeline, which encapsulated preprocessing steps (`StandardScaler` for numeric features and `OneHotEncoder` for categorical features to ensure consistent data transformation. 
 
-The test set serves as a held-out validation set that remains unseen during model training and hyperparameter tuning, providing an unbiased estimate of generalization performance.
+3.4.3 ColumnTransformer: A Unified Approach to Preprocessing
 
-## 3.4 Data Preprocessing Pipeline
+The ColumnTransformer from scikit-learn was used to apply several preprocessing algorithms to both numeric and categorical information at the same time. This estimator allows different columns or column subsets of the input to be transformed separately and the features generated by each transformer will be concatenated to form a single feature space. This is useful for heterogeneous or columnar data, to combine several feature extraction mechanisms or transformations into a single transformer. (scikit-learn, 2025).
+This ensures 
+1.	The right order (fit on train, transform on test).
+2.	Prevention of Data Leakage 
+3.	Works well with scikit-learn pipelines.
 
-### 3.4.1 Numeric Feature Transformation
+ 
 
-Numeric features were standardized using `StandardScaler`, which applies z-score normalization:
 
-```
-z = (x - μ) / σ
-```
 
-Where:
-- `x` = original feature value
-- `μ` = mean of the feature (computed on training data only)
-- `σ` = standard deviation of the feature
 
-**Justification**: Standardization is essential for:
-- Distance-based algorithms (logistic regression uses gradient descent)
-- Ensuring features contribute proportionally to model learning
-- Improving numerical stability and convergence speed (Bishop, 2006)
 
-### 3.4.2 Categorical Feature Encoding
 
-Categorical variables were encoded using one-hot encoding (`OneHotEncoder`):
-- Creates binary dummy variables for each category
-- Handles unknown categories in test data gracefully (`handle_unknown='ignore'`)
-- Uses sparse matrix representation for memory efficiency
 
-**Alternative Encoding Consideration**: One-hot encoding was preferred over label encoding because the categorical variables in this dataset are nominal (no inherent ordering). For tree-based models, categorical encoding schemes are less critical, but for linear models (logistic regression), one-hot encoding prevents false ordinality assumptions (Potdar et al., 2017).
 
-### 3.4.3 Integrated Preprocessing with ColumnTransformer
 
-The `ColumnTransformer` from scikit-learn was utilized to apply different preprocessing strategies to numeric and categorical features simultaneously. This ensures:
-1. Correct transformation order (fit on train, transform on test)
-2. Prevention of data leakage
-3. Seamless integration with scikit-learn pipelines
 
-## 3.5 Handling Class Imbalance
 
-Class imbalance is a fundamental challenge in credit risk modelling, as defaulted loans constitute a minority of observations. Three distinct strategies were implemented across different algorithms:
 
-### 3.5.1 Class Weighting for Linear and Tree Models
+3.5 Handling Class Imbalance
+As mentioned before, class imbalance is a big issue I experienced which made me change the target variable from loan status to loan grade.   In many real-world applications, dealing with imbalanced data is a critical concern. While most classification methods focus on two-class data problems, addressing a solution for class-imbalanced scenarios is equally essential (Nunna, Panchumarthi and Parchuri, 2024)
+ 
 
-For algorithms that support native class weighting (`LogisticRegression` and `RandomForestClassifier`), the `class_weight='balanced'` parameter was employed. This automatically computes weights inversely proportional to class frequencies:
 
-```
-w_j = n_samples / (n_classes × n_samples_j)
-```
+Each of the model is built to handle imbalances. For Linear (Logistic regression)  and Tree Models (Random forests), class Weighting was used to handle imbalances in these models. The weighted class or class-weight method approaches in a very different way as compared to the pre-existing sampling methods. Instead of creating new or ignoring the existing samples, we here develop as model which would we fed composite inputs comprising of their actual times the inverseof their occurrence(frequency) 
+(PDF) Class Weight technique for Handling Class Imbalance (Prakash and Kumar, 2022).
+When the class_weights = ‘balanced’, the model automatically assigns the class weights inversely proportional to their respective frequencies.
+Formula of Class Weights
+wj=n_samples / (n_classes * n_samplesj)
+Here,
+•	wj is the weight for each class(j signifies the class)
+•	n_samplesis the total number of samples or rows in the dataset
+•	n_classesis the total number of unique classes in the target
+•	n_samplesjis the total number of rows of the respective class
+(Analytics Vidhya, 2020).
 
-Where:
-- `w_j` = weight for class j
-- `n_samples` = total number of samples
-- `n_classes` = number of classes (2 for binary)
-- `n_samples_j` = number of samples in class j
 
-**Effect**: This penalizes misclassification of the minority class (defaults) more heavily during training, encouraging the model to learn discriminative patterns for rare events (He and Garcia, 2009).
 
-### 3.5.2 Sample Weighting for Gradient Boosting
 
-`GradientBoostingClassifier` does not support a `class_weight` parameter. To address this limitation, a custom wrapper class `GradientBoostingWithSampleWeight` was developed. This wrapper:
 
-1. Computes balanced sample weights using `compute_sample_weight(class_weight='balanced', y=y_train)`
-2. Passes these weights to the `fit()` method via the `sample_weight` parameter
-3. Maintains compatibility with scikit-learn's API (inherits from `BaseEstimator` and `ClassifierMixin`)
 
-**Technical Implementation**: The wrapper ensures that during training, each observation is weighted according to the inverse frequency of its class. This effectively upweights minority class samples without resampling (Chawla et al., 2002).
 
-### 3.5.3 Scale Positive Weight for XGBoost
 
-XGBoost uses a different mechanism for handling imbalance: the `scale_pos_weight` parameter. This was computed as:
 
-```
-scale_pos_weight = count(negative_class) / count(positive_class)
-```
 
-**Interpretation**: This ratio (typically > 1 for imbalanced data) increases the penalty for misclassifying positive (default) cases. For example, if defaults represent 20% of loans, `scale_pos_weight = 4`, meaning each default carries 4 times the weight of a paid loan during gradient computation (Chen and Guestrin, 2016).
 
-### 3.5.4 Justification for Approach
 
-The methodology deliberately **excludes synthetic oversampling techniques** (e.g., SMOTE) for the following reasons:
-1. **Risk of overfitting**: Synthetic samples can introduce artificial patterns
-2. **Computational efficiency**: Reweighting avoids dataset expansion
-3. **Interpretability**: Original observations are preserved
-4. **Regulatory compliance**: Real data is preferable for auditable models in finance (Baesens et al., 2003)
+For Gradient Boosting, a custom wrapper was created to handle the class imbalance, as gradient boosting does not support class_weight directly.
+ 
 
-## 3.6 Model Selection and Configuration
+For Xgboost, scale_pos_weight is computed to handle the imbalance in the data and then passed to the input of the Xgboost model.
+ 
 
-### 3.6.1 Candidate Algorithm Portfolio
 
-Four algorithms representing diverse learning paradigms were selected:
 
-#### 3.6.1.1 Logistic Regression
-- **Type**: Generalized linear model
-- **Interpretability**: High (coefficients directly interpretable as log-odds)
-- **Configuration**:
-  - L2 regularization (ridge)
-  - Maximum iterations: 1000
-  - Class weighting: balanced
-  - Solver: lbfgs (efficient for L2)
 
-**Rationale**: Logistic regression serves as a strong baseline and is widely used in credit scoring due to its transparency and regulatory acceptability (Thomas et al., 2017).
 
-#### 3.6.1.2 Random Forest
-- **Type**: Ensemble of decision trees (bagging)
-- **Interpretability**: Medium (feature importance via impurity decrease)
-- **Configuration**:
-  - Maximum depth: 10 (prevents overfitting)
-  - Minimum samples per leaf: 10 (avoids pure leaves)
-  - Class weighting: balanced
-  - Parallel processing: enabled (n_jobs=-1)
+3.3.2 Evaluation and Validation
+Metrics: Given the credit scoring context, Area Under the Receiver Operating Characteristic Curve (ROC-AUC) and the Kolmogorov-Smirnov (KS) statistic were chosen as the primary evaluation metrics. The area under the ROC curve (AUC) represents the probability that the model, if given a randomly chosen positive and negative example, will rank the positive higher than the negative. The ROC curve is drawn by calculating the true positive rate (TPR) and false positive rate (FPR) at every possible threshold (in practice, at selected intervals), then graphing TPR over FPR. (Google Developers, 2025).
+ 
 
-**Rationale**: Random forests are robust to non-linear relationships and feature interactions, making them suitable for complex credit risk patterns (Breiman, 2001).
-
-#### 3.6.1.3 Gradient Boosting (with Sample Weighting)
-- **Type**: Ensemble of decision trees (boosting)
-- **Interpretability**: Medium-low (sequential additive model)
-- **Configuration**:
-  - Subsample: 0.8 (stochastic gradient boosting)
-  - Early stopping: 10 iterations without improvement
-  - Validation fraction: 0.1 (for early stopping)
-  - Custom sample weighting wrapper
+The KS Score measures how well the model can differentiate between the positive and negative classes based on the distribution of the predictions. It is widely used in industries such as finance, credit, fraud detection, and marketing, where correctly separating different classes can have a significant impact on business (Gaigher, 2023).
+ 
 
-**Rationale**: Gradient boosting often achieves superior predictive performance by iteratively correcting errors of weak learners (Friedman, 2001).
+Other classification metrics is employed to evaluate the model also.
+1.	Confusion matrix
+2.	Precision
+3.	Recall
+4.	F1
 
-#### 3.6.1.4 XGBoost
-- **Type**: Optimized gradient boosting implementation
-- **Interpretability**: Medium-low (tree ensemble with regularization)
-- **Configuration**:
-  - Learning rate: 0.1
-  - Maximum depth: 4 (shallow trees prevent overfitting)
-  - Subsample: 0.8
-  - Column subsample: 0.8
-  - Scale positive weight: computed from class ratio
-  - Evaluation metric: log loss
 
-**Rationale**: XGBoost incorporates advanced regularization and parallel processing, often outperforming standard gradient boosting in financial applications (Chen and Guestrin, 2016; Lessmann et al., 2015).
 
-### 3.6.2 Pipeline Architecture
 
-Each algorithm was embedded in a scikit-learn `Pipeline` with two sequential stages:
-1. **Preprocessor**: ColumnTransformer (numeric standardization + categorical encoding)
-2. **Model**: Configured classifier
+3.3.3 Model Tuning and Generalisation Testing
+Based on its strong baseline performance and interpretability, Logistic Regression was selected for further optimization and based on the model that generalised well and the PD of default used for segemenattion was chosen from logistic regression. The data was trained on the training data and the test data was used to test for genralisation.
+Hyperparameter Tuning:`GridSearchCV` was used to systematically search for the optimal combination of hyperparameters ( C, penalty, solver).
+Generalisation Assessment: A rule based statistical test was conducted to compare the model's performance on the training set versus the test set. The resulting p-value indicates whether the observed drop in performance is statistically significant.  
+ 
 
-**Advantages of Pipeline Design**:
-- Prevents data leakage (transformations fit only on training folds during CV)
-- Ensures reproducibility
-- Simplifies hyperparameter tuning (entire pipeline can be searched)
-- Facilitates deployment (single object encapsulates full workflow)
 
-## 3.7 Model Evaluation Framework
 
-### 3.7.1 Cross-Validation Strategy
 
-**5-Fold Stratified Cross-Validation** was employed on the training set to obtain robust performance estimates:
+3.4 Unsupervised Learning: Borrower Segmentation
+Segmenting borrowers based on their predicted PD scores and other application-time criteria was the focus of the methodology's second stage.
 
-- **Number of folds**: 5 (standard practice balancing bias-variance tradeoff)
-- **Stratification**: Each fold maintains original class proportions
-- **Shuffling**: Enabled with fixed random seed (42)
+3.4.1 Hybrid Feature Set Construction
+A novel feature set was constructed for the clustering algorithm. It combined:
+1.  Borrower Characteristics: A curated set of numeric and categorical features available at the time of application.
+2.  Predicted PD Score: The output from the final tuned Logistic Regression model.
 
-**Procedure**:
-1. Training set divided into 5 stratified folds
-2. For each fold:
-   - 4 folds used for training
-   - 1 fold held out for validation
-3. Performance metrics averaged across all 5 folds
-4. Standard deviations computed to assess stability
-
-**Justification**: Cross-validation provides a more reliable estimate of generalization performance than a single train-validation split, especially for imbalanced datasets (Kohavi, 1995).
-
-### 3.7.2 Performance Metrics
-
-Two primary metrics were selected based on their relevance to imbalanced binary classification in credit risk:
-
-#### 3.7.2.1 Area Under the ROC Curve (AUC-ROC)
-
-The Receiver Operating Characteristic (ROC) curve plots True Positive Rate (Sensitivity) against False Positive Rate (1 - Specificity) across all classification thresholds. The Area Under the Curve (AUC) summarizes discriminative ability:
-
-- **Range**: 0.5 (random classifier) to 1.0 (perfect classifier)
-- **Interpretation**: Probability that a randomly chosen default is ranked higher than a randomly chosen paid loan
-- **Threshold-independent**: Evaluates ranking quality, not fixed classification decisions
-
-**Advantages for Credit Risk**:
-- Robust to class imbalance (unlike accuracy)
-- Reflects model's ability to rank-order risk (critical for portfolio management)
-- Standard metric in credit scoring literature (Baesens et al., 2003)
-
-#### 3.7.2.2 Kolmogorov-Smirnov (KS) Statistic
-
-The KS statistic measures the maximum separation between cumulative distribution functions of predicted probabilities for positive and negative classes:
-
-```
-KS = max|F_1(x) - F_0(x)|
-```
-
-Where:
-- `F_1(x)` = CDF of predicted probabilities for defaults
-- `F_0(x)` = CDF of predicted probabilities for non-defaults
-
-**Range**: 0 (no discrimination) to 1 (perfect separation)
-
-**Industry Standard**: KS is widely used in credit risk modelling as it directly quantifies class separation. Values above 0.40 are considered strong in financial applications (Siddiqi, 2006).
-
-**Custom Scorer Implementation**: A custom scikit-learn scorer was created using `make_scorer()` to enable KS computation during cross-validation:
-
-```python
-from scipy.stats import ks_2samp
-ks_scorer = make_scorer(
-    lambda y_true, y_pred: ks_2samp(
-        y_pred[y_true == 1], 
-        y_pred[y_true == 0]
-    ).statistic,
-    needs_proba=True
-)
-```
-
-### 3.7.3 Why Not Precision-Recall AUC?
-
-While PR-AUC is valuable for imbalanced datasets, this methodology prioritizes **ROC-AUC and KS** for the following reasons:
-
-1. **Threshold flexibility**: Credit risk models require adjustable decision thresholds based on risk appetite; ROC-AUC evaluates performance across all thresholds
-2. **Industry convention**: Financial institutions standardize on AUC and KS for model comparison and regulatory reporting
-3. **Interpretability**: KS provides intuitive separation metrics that translate directly to business decisions (e.g., score cutoffs for approval rates)
-
-### 3.7.4 Test Set Evaluation
-
-After cross-validation, models were retrained on the entire training set and evaluated on the held-out test set. For each model, the following were computed:
-
-**Probability-Based Metrics** (primary focus):
-- AUC-ROC
-- KS Statistic
-
-**Classification Metrics** (at default 0.5 threshold):
-- Confusion matrix (TP, TN, FP, FN)
-- Precision, Recall, F1-Score (via classification report)
-
-**Note**: Classification metrics are reported for completeness but are secondary to probability-based metrics, as threshold selection depends on business objectives (e.g., target approval rate, loss tolerance).
-
-## 3.8 Generalization Assessment
-
-### 3.8.1 Train-Test Performance Comparison
-
-For each model, training and test set metrics were compared to detect overfitting:
-
-- **Training Metrics**: AUC, KS computed on full training set
-- **Test Metrics**: AUC, KS computed on held-out test set
-- **Drop-off**: Difference between training and test performance
-
-**Interpretation Criteria**:
-- **AUC drop > 0.10**: High risk of overfitting
-- **AUC drop 0.03–0.10**: Moderate overfitting (common, but monitor)
-- **AUC drop < 0.03**: Good generalization
-
-### 3.8.2 Statistical Validation via Bootstrap
-
-To rigorously test whether observed train-test differences are statistically significant, a **bootstrap hypothesis test** was conducted:
-
-**Procedure**:
-1. For each model, extract predicted probabilities on train and test sets
-2. Perform 200 bootstrap iterations:
-   - Resample train probabilities with replacement → compute AUC
-   - Resample test probabilities with replacement → compute AUC
-3. Collect bootstrap distributions of train and test AUCs
-4. Conduct Welch's t-test (allows unequal variances) on distributions
-5. Compute p-value for null hypothesis: "train AUC = test AUC"
-
-**Decision Rule**:
-- **p-value ≥ 0.05**: No significant difference → good generalization
-- **p-value < 0.05**: Significant difference → evidence of overfitting
-
-**Composite Ranking**: Models were ranked by:
-1. Highest p-value (strong generalization evidence)
-2. Smallest AUC drop (minimal performance degradation)
-
-This dual-criterion approach identifies models that both perform well and generalize reliably (Efron and Tibshirani, 1993).
-
-## 3.9 Hyperparameter Optimization
-
-### 3.9.1 Focus on Logistic Regression
-
-Following baseline evaluation, **Logistic Regression** was selected for hyperparameter tuning due to:
-1. **Interpretability**: Transparent coefficients for regulatory compliance
-2. **Efficiency**: Fast training enables extensive grid search
-3. **Stability**: Less prone to overfitting than complex ensembles
-4. **Baseline strength**: Competitive initial performance
-
-### 3.9.2 Grid Search Strategy
-
-A comprehensive grid search was conducted using `GridSearchCV`:
-
-**Search Space**:
-- **Regularization type** (`penalty`):
-  - `'l2'` (Ridge): Shrinks coefficients toward zero (suitable for correlated features)
-  - `'l1'` (Lasso): Induces sparsity by zeroing weak coefficients (feature selection)
-  
-- **Regularization strength** (`C`):
-  - Values: `[0.01, 0.1, 1, 10]`
-  - **Interpretation**: `C = 1/λ`, where λ is the regularization parameter
-  - Smaller C → stronger regularization (more shrinkage)
-  - Larger C → weaker regularization (closer to unregularized model)
-  
-- **Solver**:
-  - `'lbfgs'` for L2 (efficient quasi-Newton method)
-  - `'liblinear'` for L1 (coordinate descent, required for L1)
-  
-- **Class weighting**:
-  - `None` vs. `'balanced'` (tests impact of imbalance handling)
-
-**Total Combinations**: 2 penalties × 4 C values × 2 class weights = **16 configurations**
-
-### 3.9.3 Cross-Validation Configuration
-
-- **Folds**: 5-fold stratified CV (consistent with baseline evaluation)
-- **Scoring**: `'roc_auc'` (primary optimization metric)
-- **Parallel processing**: Enabled (`n_jobs=-1`)
-- **Verbosity**: Level 2 (detailed progress reporting)
-
-**Selection Criterion**: Configuration with highest mean CV AUC was selected as the best model.
-
-### 3.9.4 Final Model Evaluation
-
-The best hyperparameter configuration was:
-1. Retrained on the full training set
-2. Evaluated on both training and test sets using:
-   - `evaluate_model_performance()` function (AUC, KS, confusion matrix)
-3. Assessed for generalization via train-test AUC comparison
-4. Visualized via ROC curve on test set
-
-## 3.10 Visualization and Reporting
-
-### 3.10.1 Confusion Matrices
-
-Confusion matrices were generated for each model (using 0.5 threshold) to visualize:
-- **True Positives (TP)**: Correctly identified defaults
-- **True Negatives (TN)**: Correctly identified paid loans
-- **False Positives (FP)**: Paid loans incorrectly flagged as defaults (Type I error)
-- **False Negatives (FN)**: Defaults incorrectly classified as paid (Type II error, more costly)
-
-Heatmaps with green color scales were used to emphasize correct predictions.
-
-### 3.10.2 ROC Curves
-
-Two ROC visualizations were produced:
-
-1. **Comparative ROC Plot**: All four baseline models overlaid on a single plot
-   - Enables direct visual comparison of discriminative ability
-   - Diagonal reference line (random classifier) included
-   - AUC values displayed in legend
-
-2. **Best Model ROC Plot**: Focused plot for the optimized logistic regression model
-   - Highlights final model's performance
-   - Used for thesis/report inclusion
-
-### 3.10.3 Performance Summary Tables
-
-Structured tables were generated for:
-- Cross-validation results (mean AUC and KS per model)
-- Test set performance (AUC, KS, precision, recall, F1 per model)
-- Generalization assessment (bootstrap p-values, AUC drops)
-- Best hyperparameters (for tuned logistic regression)
-
-## 3.11 Methodological Considerations and Limitations
-
-### 3.11.1 Strengths
-
-1. **Rigorous validation**: Stratified CV + held-out test set prevents overoptimistic estimates
-2. **Imbalance handling**: Multiple strategies tailored to each algorithm
-3. **Statistical rigor**: Bootstrap testing provides formal generalization assessment
-4. **Reproducibility**: Fixed random seeds and pipeline architecture ensure repeatability
-5. **Industry alignment**: Metrics (AUC, KS) match financial sector standards
-
-### 3.11.2 Limitations
-
-1. **Temporal validity**: Models trained on historical data may not capture future regime shifts (e.g., economic crises)
-2. **Threshold selection**: Fixed 0.5 threshold for classification metrics is arbitrary; business-specific thresholds should be determined via cost-benefit analysis
-3. **Feature stability**: Model assumes feature distributions remain stable in production
-4. **Interpretability trade-off**: Ensemble models (RF, XGBoost) sacrifice some transparency for performance
-
-### 3.11.3 Future Enhancements
-
-- **Calibration**: Apply Platt scaling or isotonic regression to ensure predicted probabilities are well-calibrated
-- **Threshold optimization**: Use profit curves or cost-sensitive learning to determine optimal classification thresholds
-- **Temporal validation**: Implement time-based splits (train on older data, test on recent data) to assess temporal stability
-- **Fairness analysis**: Evaluate model for disparate impact across protected demographic groups (if legally permissible)
-
-## 3.12 Summary
-
-This chapter presented a comprehensive, statistically rigorous methodology for developing credit risk classification models. The approach addresses key challenges in imbalanced binary classification through:
-
-1. **Stratified data partitioning** to ensure representative train-test splits
-2. **Tailored preprocessing pipelines** for heterogeneous feature types
-3. **Algorithm-specific imbalance handling** (class weights, sample weights, scale_pos_weight)
-4. **Robust evaluation** via stratified cross-validation and held-out testing
-5. **Formal generalization testing** through bootstrap hypothesis tests
-6. **Systematic hyperparameter optimization** for model refinement
-
-The resulting models were evaluated using industry-standard metrics (AUC-ROC, KS Statistic) and assessed for both predictive performance and generalization capability. The methodology provides a transparent, reproducible framework suitable for academic research and practical deployment in credit risk assessment systems.
+3.4.2 Dimensionality Reduction and Clustering
+PCA Application: To manage the high-dimensional feature space, Principal Component Analysis (PCA) was applied to the borrower characteristic features (excluding the PD score). Sparse PCA seeks sparse factors, or linear combinations of the data variables, explaining a maximum amount of variance in the data while having only a limited number of nonzero coefficients (Luss and d’Aspremont, 2010).  The PD score was intentionally excluded from PCA to preserve its direct, unadulterated influence on the clustering process.
+ 
+ 
+-Final Feature Matrix: The resulting principal components were then combined with the standardized PD score to form the final feature matrix for clustering.
+ 
+
+- Clustering Algorithm: The K-Means algorithm was chosen for its efficiency and interpretability in partitioning the data into a pre-determined number of clusters (k). The optimal value for 'k' was determined using the Elbow Method, which identifies the point of diminishing returns in the Within-Cluster Sum of Squares (WCSS).
+ 
+
+Figure 3.4: Elbow Method for Optimal k Selection
+
+3.4.3 Segment Profiling and Interpretation
+Following their formation, the clusters were profiled to determine their business significance. Each section was given an intuitive risk label ('Low Risk', 'Moderate Risk', and 'High Risk') based on the average PD score within each cluster. The unsupervised output is converted into useful business intelligence in this last stage and saved as pdf file
+ 
+
+3.5 Decision Support Framework and Implementation
+The clusters were profiled once they were formed in order to assess their business significance. Based on the average PD score within each cluster, each area was assigned an intuitive risk label ('Low Risk', 'Moderate Risk', and 'High Risk'). In this final step, the unsupervised output is transformed into valuable business intelligence. A python script was created for the streamlit application.
+The DSS is designed to be intuitive, providing users with multiple lenses through which to view the P2P lending landscape:
+Interactive Filtering: Users can dynamically filter the loan portfolio based on key criteria such as `risk_level`, `loan_amount`, and `interest_rate`. This allows for the immediate selection of loans that align with a specific investment strategy or risk appetite.
+-    Investment Overview
+: A central feature of the dashboard is a scatter plot that visualizes the relationship between the predicted Probability of Default (`pd_score`) and the `interest_rate`. This allows investors to visually assess the risk-return trade-off for individual loans and entire segments.
+Risk Distribution
+: The dashboard provides aggregated metrics for each risk segment, including average interest rates, default probabilities, and a calculated `expected_return`. This high-level summary supports strategic allocation of capital across different risk tiers.
+-   Investment Recommendations
+: Users can drill down into a detailed, sortable table of individual loans that match their selected criteria, facilitating the final selection process.
+Investment Decision Guide
+
+By operationalizing the model outputs in this manner, the research moves beyond theoretical analysis to provide a tangible framework that directly supports the decision-making process in P2P lending.
+
+ Figure 3.6: Investor Decision Support Dashboard
+ ✅
 
 ---
 
-## References
+### 3.6 References
 
-Baesens, B., Van Gestel, T., Viaene, S., Stepanova, M., Suykens, J. and Vanthienen, J. (2003) 'Benchmarking state-of-the-art classification algorithms for credit scoring', *Journal of the Operational Research Society*, 54(6), pp. 627–635. doi:10.1057/palgrave.jors.2601545.
 
-Bishop, C. M. (2006) *Pattern Recognition and Machine Learning*. New York: Springer.
+Zylo Finance, 2025. How to assess loan grades in P2P platforms: a guide for Zylo P2P investment users. [online] Available at: https://zylofinance.in/how-to-assess-loan-grades-in-p2p-platforms-a-guide-for-zylo-p2p-investment-users/ [Accessed 16 November 2025].
+Kwak, S.K. and Kim, J.H., 2017. Statistical data preparation: management of missing values and outliers in clinical data. Korean Journal of Anesthesiology. Available at: https://pmc.ncbi.nlm.nih.gov/articles/PMC5548942/ [Accessed 16 November 2025].
 
-Breiman, L. (2001) 'Random forests', *Machine Learning*, 45(1), pp. 5–32. doi:10.1023/A:1010933404324.
+Saunders, M., Lewis, P. and Thornhill, A. (2019) Research methods for business students. 8th edn. Harlow: Pearson Education.
 
-Chawla, N. V., Bowyer, K. W., Hall, L. O. and Kegelmeyer, W. P. (2002) 'SMOTE: Synthetic minority over-sampling technique', *Journal of Artificial Intelligence Research*, 16, pp. 321–357. doi:10.1613/jair.953.
+Siddiqi, N., 2012. Credit risk scorecards: developing and implementing intelligent credit scoring. Hoboken, NJ: Wiley.
 
-Chen, T. and Guestrin, C. (2016) 'XGBoost: A scalable tree boosting system', in *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*. San Francisco, CA: ACM, pp. 785–794. doi:10.1145/2939672.2939785.
 
-Efron, B. and Tibshirani, R. J. (1993) *An Introduction to the Bootstrap*. New York: Chapman and Hall/CRC.
+Brown, I. and Mues, C. (2012) 'An experimental comparison of classification algorithms for credit scoring', Decision Support Systems, 52(2), pp. 487-496.
 
-Friedman, J. H. (2001) 'Greedy function approximation: A gradient boosting machine', *Annals of Statistics*, 29(5), pp. 1189–1232. doi:10.1214/aos/1013203451.
+Siddiqi, N. (2017) Intelligent Credit Scoring: Building and Implementing Better Credit Risk Scorecards. 2nd edn. Hoboken, NJ: John Wiley & Sons.
 
-Géron, A. (2019) *Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow*. 2nd edn. Sebastopol, CA: O'Reilly Media.
-
-Hand, D. J. and Henley, W. E. (1997) 'Statistical classification methods in consumer credit scoring: A review', *Journal of the Royal Statistical Society: Series A (Statistics in Society)*, 160(3), pp. 523–541. doi:10.1111/j.1467-985X.1997.00078.x.
-
-He, H. and Garcia, E. A. (2009) 'Learning from imbalanced data', *IEEE Transactions on Knowledge and Data Engineering*, 21(9), pp. 1263–1284. doi:10.1109/TKDE.2008.239.
-
-Kohavi, R. (1995) 'A study of cross-validation and bootstrap for accuracy estimation and model selection', in *Proceedings of the 14th International Joint Conference on Artificial Intelligence*. Montreal, Canada: Morgan Kaufmann, pp. 1137–1143.
-
-Lessmann, S., Baesens, B., Seow, H.-V. and Thomas, L. C. (2015) 'Benchmarking state-of-the-art classification algorithms for credit scoring: An update of research', *European Journal of Operational Research*, 247(1), pp. 124–136. doi:10.1016/j.ejor.2015.05.030.
-
-Potdar, K., Pardawala, T. S. and Pai, C. D. (2017) 'A comparative study of categorical variable encoding techniques for neural network classifiers', *International Journal of Computer Applications*, 175(4), pp. 7–9. doi:10.5120/ijca2017915495.
-
-Siddiqi, N. (2006) *Credit Risk Scorecards: Developing and Implementing Intelligent Credit Scoring*. Hoboken, NJ: John Wiley & Sons.
-
-Thomas, L. C., Edelman, D. B. and Crook, J. N. (2017) *Credit Scoring and Its Applications*. 2nd edn. Philadelphia, PA: Society for Industrial and Applied Mathematics.
+Scikit-learn (2023) Scikit-learn: Machine Learning in Python. Available at: https://scikit-learn.org (Accessed: 16 November 2025).
