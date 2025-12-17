@@ -105,7 +105,7 @@ with col2:
     st.metric("Avg Loan Amount", f"${avg_loan_amount:,.0f}")
 
 with col3:
-    avg_interest = filtered_df['interest_rate']
+    avg_interest = filtered_df['interest_rate'].mean()
     st.metric("Avg Interest Rate", f"{avg_interest:.2f}%")
 
 with col4:
