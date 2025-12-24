@@ -27,7 +27,7 @@ df = load_data()
 # Header
 # 
 st.title("💰 P2P Lending Investment Dashboard")
-st.markdown("**Investment decision support system for peer-to-peer lending**")
+st.markdown("**Investment Dashboard**")
 st.divider()
 
 # 
