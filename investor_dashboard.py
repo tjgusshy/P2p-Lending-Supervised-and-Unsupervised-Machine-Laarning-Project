@@ -94,7 +94,7 @@ filtered_df = df[
 ]
 
 # -----------------------------------------------------------------------------
-# Key Performance Indicators
+# Key Performance Indicators (ADDED ICONS HERE)
 # -----------------------------------------------------------------------------
 st.subheader("📊 Investment Overview")
 
@@ -102,26 +102,26 @@ col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     total_loans = len(filtered_df)
-    st.metric("Available Loans", f"{total_loans:,}")
+    st.metric("📂 Available Loans", f"{total_loans:,}")
 
 with col2:
     avg_loan_amount = filtered_df['loan_amount'].mean()
     val_loan = f"${avg_loan_amount:,.0f}" if not pd.isna(avg_loan_amount) else "$0"
-    st.metric("Avg Loan Amount", val_loan)
+    st.metric("💵 Avg Loan Amount", val_loan)
 
 with col3:
     avg_interest = filtered_df['interest_rate'].mean()
     val_interest = f"{avg_interest:.2f}%" if not pd.isna(avg_interest) else "0%"
-    st.metric("Avg Interest Rate", val_interest)
+    st.metric("📈 Avg Interest Rate", val_interest)
 
 with col4:
     avg_pd_score = filtered_df['pd_score'].mean()
     val_pd = f"{avg_pd_score:.3f}" if not pd.isna(avg_pd_score) else "0"
-    st.metric("Avg Default Risk", val_pd)
+    st.metric("⚠️ Avg Default Risk", val_pd)
 
 with col5:
     total_investment_opportunity = filtered_df['loan_amount'].sum()
-    st.metric("Total Investment Pool", f"${total_investment_opportunity/1000000:.1f}M")
+    st.metric("🏦 Total Investment Pool", f"${total_investment_opportunity/1000000:.1f}M")
 
 st.divider()
 
@@ -170,7 +170,7 @@ with col2:
         st.info("No data available for Scatter Plot")
 
 # -----------------------------------------------------------------------------
-# Investment Recommendations
+# Investment Recommendations (ADDED ICONS HERE)
 # -----------------------------------------------------------------------------
 st.subheader("💡 Investment Recommendations")
 
@@ -180,10 +180,10 @@ with col1:
     st.markdown("### 🟢 Low Risk Loans")
     low_risk = filtered_df[filtered_df['risk_level'] == 'Low']
     if len(low_risk) > 0:
-        st.metric("Count", len(low_risk))
-        st.metric("Avg Interest", f"{low_risk['interest_rate'].mean():.2f}%")
-        st.metric("Avg Default Risk", f"{low_risk['pd_score'].mean():.3f}")
-        st.success("Recommended for conservative investors")
+        st.metric("🔢 Count", len(low_risk))
+        st.metric("📈 Avg Interest", f"{low_risk['interest_rate'].mean():.2f}%")
+        st.metric("🛡️ Avg Default Risk", f"{low_risk['pd_score'].mean():.3f}")
+        st.success("✅ Recommended for conservative investors")
     else:
         st.info("No low risk loans in current filter")
 
@@ -191,9 +191,9 @@ with col2:
     st.markdown("### 🟡 High Risk Loans")
     high_risk = filtered_df[filtered_df['risk_level'] == 'High']
     if len(high_risk) > 0:
-        st.metric("Count", len(high_risk))
-        st.metric("Avg Interest", f"{high_risk['interest_rate'].mean():.2f}%")
-        st.metric("Avg Default Risk", f"{high_risk['pd_score'].mean():.3f}")
+        st.metric("🔢 Count", len(high_risk))
+        st.metric("📈 Avg Interest", f"{high_risk['interest_rate'].mean():.2f}%")
+        st.metric("⚖️ Avg Default Risk", f"{high_risk['pd_score'].mean():.3f}")
         st.warning("⚠️ Higher returns, moderate risk")
     else:
         st.info("No high risk loans in current filter")
@@ -202,9 +202,9 @@ with col3:
     st.markdown("### 🔴 Very High Risk Loans")
     very_high_risk = filtered_df[filtered_df['risk_level'] == 'Very High']
     if len(very_high_risk) > 0:
-        st.metric("Count", len(very_high_risk))
-        st.metric("Avg Interest", f"{very_high_risk['interest_rate'].mean():.2f}%")
-        st.metric("Avg Default Risk", f"{very_high_risk['pd_score'].mean():.3f}")
+        st.metric("🔢 Count", len(very_high_risk))
+        st.metric("📈 Avg Interest", f"{very_high_risk['interest_rate'].mean():.2f}%")
+        st.metric("🔥 Avg Default Risk", f"{very_high_risk['pd_score'].mean():.3f}")
         st.error("🚨 High returns, high risk - experienced investors only")
     else:
         st.info("No very high risk loans in current filter")
@@ -246,9 +246,9 @@ with col2:
             df_avg,
             x='risk_level',
             y='mean',
-            #error_y='std', # Adds error bars to show risk/variance
+            error_y='std', # Adds error bars to show risk/variance
             color='risk_level',
-            title="Avg Interest",
+            title="Avg Interest Rate (+/- Deviation)",
             color_discrete_map=colors,
             text_auto='.2f'
         )
@@ -256,7 +256,7 @@ with col2:
         st.plotly_chart(fig_bar, use_container_width=True)
 
 # -----------------------------------------------------------------------------
-# Risk Metrics Table (FIXED COLUMN MISMATCH)
+# Risk Metrics Table
 # -----------------------------------------------------------------------------
 st.subheader("📋 Risk Metrics Summary")
 
