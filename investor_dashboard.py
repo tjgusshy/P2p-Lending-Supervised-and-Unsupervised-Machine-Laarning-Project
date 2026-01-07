@@ -246,9 +246,9 @@ with col2:
             df_avg,
             x='risk_level',
             y='mean',
-            error_y='std', # Adds error bars to show risk/variance
+            #error_y='std', # Adds error bars to show risk/variance
             color='risk_level',
-            title="Avg Interest Rate (+/- Deviation)",
+            title="Avg Interest",
             color_discrete_map=colors,
             text_auto='.2f'
         )
