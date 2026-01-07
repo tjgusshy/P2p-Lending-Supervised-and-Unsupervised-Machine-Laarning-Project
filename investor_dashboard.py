@@ -1,38 +1,42 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# 
+# -----------------------------------------------------------------------------
 # Page Configuration
-# 
+# -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="P2P Investment Dashboard",
     page_icon="💰",
     layout="wide"
 )
 
-# 
+# -----------------------------------------------------------------------------
 # Data Loading
-# 
+# -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
+    # Ensure this file exists in your directory
     df = pd.read_csv("borrower_clusters_with_pd.csv")
     return df
 
-df = load_data()
+try:
+    df = load_data()
+except FileNotFoundError:
+    st.error("Error: 'borrower_clusters_with_pd.csv' not found. Please ensure the file is in the same directory.")
+    st.stop()
 
-# 
+# -----------------------------------------------------------------------------
 # Header
-# 
+# -----------------------------------------------------------------------------
 st.title("💰 P2P Lending Investment Dashboard")
 st.markdown("**Investment Dashboard**")
 st.divider()
 
-# 
+# -----------------------------------------------------------------------------
 # Sidebar Filters
-# 
+# -----------------------------------------------------------------------------
 st.sidebar.header("🎯 Investment Filters")
 
 # Risk level filter
@@ -89,9 +93,9 @@ filtered_df = df[
     (df['pd_score'] <= pd_range[1])
 ]
 
-# 
+# -----------------------------------------------------------------------------
 # Key Performance Indicators
-# 
+# -----------------------------------------------------------------------------
 st.subheader("📊 Investment Overview")
 
 col1, col2, col3, col4, col5 = st.columns(5)
@@ -102,15 +106,18 @@ with col1:
 
 with col2:
     avg_loan_amount = filtered_df['loan_amount'].mean()
-    st.metric("Avg Loan Amount", f"${avg_loan_amount:,.0f}")
+    val_loan = f"${avg_loan_amount:,.0f}" if not pd.isna(avg_loan_amount) else "$0"
+    st.metric("Avg Loan Amount", val_loan)
 
 with col3:
     avg_interest = filtered_df['interest_rate'].mean()
-    st.metric("Avg Interest Rate", f"{avg_interest:.2f}%")
+    val_interest = f"{avg_interest:.2f}%" if not pd.isna(avg_interest) else "0%"
+    st.metric("Avg Interest Rate", val_interest)
 
 with col4:
     avg_pd_score = filtered_df['pd_score'].mean()
-    st.metric("Avg Default Risk", f"{avg_pd_score:.3f}")
+    val_pd = f"{avg_pd_score:.3f}" if not pd.isna(avg_pd_score) else "0"
+    st.metric("Avg Default Risk", val_pd)
 
 with col5:
     total_investment_opportunity = filtered_df['loan_amount'].sum()
@@ -118,46 +125,53 @@ with col5:
 
 st.divider()
 
-# 
+# -----------------------------------------------------------------------------
 # Investment Analysis Charts
-# 
+# -----------------------------------------------------------------------------
 col1, col2 = st.columns(2)
+
+# Define Colors for consistency
+colors = {'Low': '#28a745', 'High': '#fd7e14', 'Very High': '#dc3545'}
 
 with col1:
     st.subheader("Risk Distribution")
     risk_counts = filtered_df['risk_level'].value_counts()
     
-    # Risk level colors
-    colors = {'Low': '#28a745', 'High': '#fd7e14', 'Very High': '#dc3545'}
-    
-    fig_risk = px.pie(
-        values=risk_counts.values,
-        names=risk_counts.index,
-        title="Loans by Risk Level",
-        color=risk_counts.index,
-        color_discrete_map=colors
-    )
-    fig_risk.update_layout(height=300)
-    st.plotly_chart(fig_risk, use_container_width=True)
+    if not risk_counts.empty:
+        fig_risk = px.pie(
+            values=risk_counts.values,
+            names=risk_counts.index,
+            title="Loans by Risk Level",
+            color=risk_counts.index,
+            color_discrete_map=colors
+        )
+        fig_risk.update_layout(height=300)
+        st.plotly_chart(fig_risk, use_container_width=True)
+    else:
+        st.info("No data available for Risk Distribution")
 
 with col2:
     st.subheader("Return vs Risk")
-    fig_scatter = px.scatter(
-        filtered_df,
-        x='pd_score',
-        y='interest_rate',
-        color='risk_level',
-        size='loan_amount',
-        title="Interest Rate vs Default Probability",
-        labels={'pd_score': 'Default Probability', 'interest_rate': 'Interest Rate (%)'},
-        color_discrete_map=colors
-    )
-    fig_scatter.update_layout(height=300)
-    st.plotly_chart(fig_scatter, use_container_width=True)
+    if not filtered_df.empty:
+        fig_scatter = px.scatter(
+            filtered_df,
+            x='pd_score',
+            y='interest_rate',
+            color='risk_level',
+            size='loan_amount',
+            title="Interest Rate vs Default Probability",
+            labels={'pd_score': 'Default Probability', 'interest_rate': 'Interest Rate (%)'},
+            color_discrete_map=colors,
+            hover_data=['annual_income']
+        )
+        fig_scatter.update_layout(height=300)
+        st.plotly_chart(fig_scatter, use_container_width=True)
+    else:
+        st.info("No data available for Scatter Plot")
 
-# 
+# -----------------------------------------------------------------------------
 # Investment Recommendations
-# 
+# -----------------------------------------------------------------------------
 st.subheader("💡 Investment Recommendations")
 
 col1, col2, col3 = st.columns(3)
@@ -169,7 +183,7 @@ with col1:
         st.metric("Count", len(low_risk))
         st.metric("Avg Interest", f"{low_risk['interest_rate'].mean():.2f}%")
         st.metric("Avg Default Risk", f"{low_risk['pd_score'].mean():.3f}")
-        st.success("✅ Recommended for conservative investors")
+        st.success("Recommended for conservative investors")
     else:
         st.info("No low risk loans in current filter")
 
@@ -197,61 +211,83 @@ with col3:
 
 st.divider()
 
-# 
-# Portfolio Analysis
-# 
+# -----------------------------------------------------------------------------
+# Portfolio Analysis (Business Friendly Charts)
+# -----------------------------------------------------------------------------
 st.subheader("📈 Portfolio Analysis")
 
 col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("#### Loan Amounts by Risk Level")
-    fig_box = px.box(
-        filtered_df,
-        x='risk_level',
-        y='loan_amount',
-        color='risk_level',
-        title="Loan Amount Distribution",
-        color_discrete_map=colors
-    )
-    fig_box.update_layout(height=350, showlegend=False)
-    st.plotly_chart(fig_box, use_container_width=True)
+    if not filtered_df.empty:
+        # STRIP PLOT: Better for showing "Volume" of loans to business users
+        fig_strip = px.strip(
+            filtered_df,
+            x='risk_level',
+            y='loan_amount',
+            color='risk_level',
+            title="Individual Loan Distribution",
+            color_discrete_map=colors,
+            stripmode='overlay'
+        )
+        fig_strip.update_traces(marker=dict(opacity=0.6, size=4))
+        fig_strip.update_layout(height=350, showlegend=False)
+        st.plotly_chart(fig_strip, use_container_width=True)
 
 with col2:
     st.markdown("#### Interest Rates by Risk Level")
-    fig_violin = px.violin(
-        filtered_df,
-        x='risk_level',
-        y='interest_rate',
-        color='risk_level',
-        title="Interest Rate Distribution",
-        color_discrete_map=colors
-    )
-    fig_violin.update_layout(height=350, showlegend=False)
-    st.plotly_chart(fig_violin, use_container_width=True)
+    if not filtered_df.empty:
+        # BAR CHART: Better for showing "Average" to business users
+        # Pre-calculating mean and std for the bar chart
+        df_avg = filtered_df.groupby('risk_level')['interest_rate'].agg(['mean', 'std']).reset_index()
+        
+        fig_bar = px.bar(
+            df_avg,
+            x='risk_level',
+            y='mean',
+            error_y='std', # Adds error bars to show risk/variance
+            color='risk_level',
+            title="Avg Interest Rate (+/- Deviation)",
+            color_discrete_map=colors,
+            text_auto='.2f'
+        )
+        fig_bar.update_layout(height=350, showlegend=False, yaxis_title="Interest Rate (%)")
+        st.plotly_chart(fig_bar, use_container_width=True)
 
-# 
-# Risk Metrics Table
-# 
+# -----------------------------------------------------------------------------
+# Risk Metrics Table (FIXED COLUMN MISMATCH)
+# -----------------------------------------------------------------------------
 st.subheader("📋 Risk Metrics Summary")
 
-risk_summary = filtered_df.groupby('risk_level').agg({
-    'loan_amount': ['count', 'mean', 'sum'],
-    'interest_rate': 'mean',
-    'pd_score': 'mean',
-    'annual_income': 'mean'
-}).round(2)
+if not filtered_df.empty:
+    risk_summary = filtered_df.groupby('risk_level').agg({
+        'loan_amount': ['count', 'mean', 'sum'],  # Creates 3 columns
+        'interest_rate': 'mean',                  # Creates 1 column
+        'pd_score': 'mean',                       # Creates 1 column
+        'annual_income': 'mean'                   # Creates 1 column
+    }).round(2)
+    
+    # Corrected column names (6 names for 6 columns)
+    risk_summary.columns = [
+        'Count', 
+        'Avg Loan ($)', 
+        'Total Pool ($)', 
+        'Avg Rate (%)', 
+        'Avg PD Score', 
+        'Avg Income ($)'
+    ]
+    
+    st.dataframe(risk_summary, use_container_width=True)
+else:
+    st.warning("No data matches the current filters.")
 
-risk_summary.columns = ['Count', 'Avg Loan ($)', 'Total Pool ($)', 'Avg Rate (%)', 'Avg PD Score', 'Avg Income ($)']
-st.dataframe(risk_summary, use_container_width=True)
-
-# 
+# -----------------------------------------------------------------------------
 # Investment Decision Support
-# 
+# -----------------------------------------------------------------------------
 st.subheader("🎯 Investment Decision Guide")
 
 if total_loans > 0:
-    # Portfolio allocation suggestion
     low_risk_pct = len(low_risk) / total_loans * 100
     high_risk_pct = len(high_risk) / total_loans * 100
     very_high_risk_pct = len(very_high_risk) / total_loans * 100
@@ -280,21 +316,28 @@ if total_loans > 0:
 
 st.divider()
 
-# 
+# -----------------------------------------------------------------------------
 # Top Opportunities
-# 
+# -----------------------------------------------------------------------------
 st.subheader("🏆 Top Investment Opportunities")
 
-# Best low risk loans (high interest, low PD)
 if len(low_risk) > 0:
     st.markdown("#### Best Low Risk Loans")
-    best_low_risk = low_risk.nlargest(5, 'interest_rate')[['loan_amount', 'interest_rate', 'pd_score', 'annual_income', 'homeownership']]
+    # Using safe access to columns to prevent key errors
+    cols_to_show = ['loan_amount', 'interest_rate', 'pd_score', 'annual_income']
+    if 'homeownership' in low_risk.columns:
+        cols_to_show.append('homeownership')
+        
+    best_low_risk = low_risk.nlargest(5, 'interest_rate')[cols_to_show]
     st.dataframe(best_low_risk, use_container_width=True)
 
-# Best high risk loans (highest interest rates)
 if len(high_risk) > 0:
     st.markdown("#### Best High Risk Loans")
-    best_high_risk = high_risk.nlargest(5, 'interest_rate')[['loan_amount', 'interest_rate', 'pd_score', 'annual_income', 'homeownership']]
+    cols_to_show = ['loan_amount', 'interest_rate', 'pd_score', 'annual_income']
+    if 'homeownership' in high_risk.columns:
+        cols_to_show.append('homeownership')
+
+    best_high_risk = high_risk.nlargest(5, 'interest_rate')[cols_to_show]
     st.dataframe(best_high_risk, use_container_width=True)
 
 st.caption("💰 P2P Investment Dashboard - Make informed lending decisions based on risk analysis")
