@@ -3,18 +3,18 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# -----------------------------------------------------------------------------
-# Page Configuration
-# -----------------------------------------------------------------------------
+
+# page Configuration
+#  
 st.set_page_config(
     page_title="P2P Investment Dashboard",
     page_icon="💰",
     layout="wide"
 )
 
-# -----------------------------------------------------------------------------
-# Data Loading
-# -----------------------------------------------------------------------------
+#  
+# data Loading
+#  
 @st.cache_data
 def load_data():
     # Ensure this file exists in your directory
@@ -27,19 +27,18 @@ except FileNotFoundError:
     st.error("Error: 'borrower_clusters_with_pd.csv' not found. Please ensure the file is in the same directory.")
     st.stop()
 
-# -----------------------------------------------------------------------------
-# Header
-# -----------------------------------------------------------------------------
+ 
+# header
+#  
 st.title("💰 P2P Lending Investment Dashboard")
 st.markdown("**Investment Dashboard**")
 st.divider()
 
-# -----------------------------------------------------------------------------
-# Sidebar Filters
-# -----------------------------------------------------------------------------
+#sidebar Filters
+#  
 st.sidebar.header("🎯 Investment Filters")
 
-# Risk level filter
+#risk level filter
 risk_levels = sorted(df['risk_level'].unique())
 selected_risks = st.sidebar.multiselect(
     "Risk Levels", 
@@ -47,7 +46,7 @@ selected_risks = st.sidebar.multiselect(
     default=risk_levels
 )
 
-# Loan amount filter
+#loan amount filter
 min_loan, max_loan = int(df['loan_amount'].min()), int(df['loan_amount'].max())
 loan_range = st.sidebar.slider(
     "Loan Amount Range ($)", 
@@ -55,7 +54,7 @@ loan_range = st.sidebar.slider(
     (min_loan, max_loan)
 )
 
-# Interest rate filter
+#interest rate filter
 min_rate, max_rate = float(df['interest_rate'].min()), float(df['interest_rate'].max())
 rate_range = st.sidebar.slider(
     "Interest Rate Range (%)", 
@@ -63,7 +62,7 @@ rate_range = st.sidebar.slider(
     (min_rate, max_rate)
 )
 
-# Income filter
+# annual income filter
 min_income, max_income = int(df['annual_income'].min()), int(df['annual_income'].max())
 income_range = st.sidebar.slider(
     "Annual Income Range ($)", 
@@ -71,7 +70,7 @@ income_range = st.sidebar.slider(
     (min_income, max_income)
 )
 
-# PD Score filter
+#pd Score filter
 min_pd, max_pd = float(df['pd_score'].min()), float(df['pd_score'].max())
 pd_range = st.sidebar.slider(
     "PD Score Range", 
@@ -80,7 +79,7 @@ pd_range = st.sidebar.slider(
     format="%.3f"
 )
 
-# Apply filters
+#apply filters
 filtered_df = df[
     (df['risk_level'].isin(selected_risks)) &
     (df['loan_amount'] >= loan_range[0]) &
@@ -93,9 +92,8 @@ filtered_df = df[
     (df['pd_score'] <= pd_range[1])
 ]
 
-# -----------------------------------------------------------------------------
-# Key Performance Indicators (ADDED ICONS HERE)
-# -----------------------------------------------------------------------------
+#key Performance Indicators (ADDED ICONS HERE)
+#  
 st.subheader("📊 Investment Overview")
 
 col1, col2, col3, col4, col5 = st.columns(5)
@@ -125,12 +123,11 @@ with col5:
 
 st.divider()
 
-# -----------------------------------------------------------------------------
-# Investment Analysis Charts
-# -----------------------------------------------------------------------------
+#investment Analysis Charts
+#  
 col1, col2 = st.columns(2)
 
-# Define Colors for consistency
+#define Colors for consistency
 colors = {'Low': '#28a745', 'High': '#fd7e14', 'Very High': '#dc3545'}
 
 with col1:
@@ -169,9 +166,7 @@ with col2:
     else:
         st.info("No data available for Scatter Plot")
 
-# -----------------------------------------------------------------------------
-# Investment Recommendations (ADDED ICONS HERE)
-# -----------------------------------------------------------------------------
+#investment recommendations  
 st.subheader("💡 Investment Recommendations")
 
 col1, col2, col3 = st.columns(3)
@@ -211,9 +206,8 @@ with col3:
 
 st.divider()
 
-# -----------------------------------------------------------------------------
-# Portfolio Analysis (Business Friendly Charts)
-# -----------------------------------------------------------------------------
+#portfolio Analysis (Business Friendly Charts)
+#  
 st.subheader("📈 Portfolio Analysis")
 
 col1, col2 = st.columns(2)
@@ -255,17 +249,16 @@ with col2:
         fig_bar.update_layout(height=350, showlegend=False, yaxis_title="Interest Rate (%)")
         st.plotly_chart(fig_bar, use_container_width=True)
 
-# -----------------------------------------------------------------------------
-# Risk Metrics Table
-# -----------------------------------------------------------------------------
+#risk metrics Table
+#  
 st.subheader("📋 Risk Metrics Summary")
 
 if not filtered_df.empty:
     risk_summary = filtered_df.groupby('risk_level').agg({
-        'loan_amount': ['count', 'mean', 'sum'],  # Creates 3 columns
-        'interest_rate': 'mean',                  # Creates 1 column
-        'pd_score': 'mean',                       # Creates 1 column
-        'annual_income': 'mean'                   # Creates 1 column
+        'loan_amount': ['count', 'mean', 'sum'],  
+        'interest_rate': 'mean',                  
+        'pd_score': 'mean',                       
+        'annual_income': 'mean'                   
     }).round(2)
     
     # Corrected column names (6 names for 6 columns)
@@ -282,9 +275,9 @@ if not filtered_df.empty:
 else:
     st.warning("No data matches the current filters.")
 
-# -----------------------------------------------------------------------------
-# Investment Decision Support
-# -----------------------------------------------------------------------------
+#  
+# investment decision Support
+#  
 st.subheader("🎯 Investment Decision Guide")
 
 if total_loans > 0:
@@ -316,9 +309,8 @@ if total_loans > 0:
 
 st.divider()
 
-# -----------------------------------------------------------------------------
-# Top Opportunities
-# -----------------------------------------------------------------------------
+# top opportunities
+#  
 st.subheader("🏆 Top Investment Opportunities")
 
 if len(low_risk) > 0:
