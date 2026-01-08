@@ -234,15 +234,14 @@ with col2:
     if not filtered_df.empty:
         # BAR CHART: Better for showing "Average" to business users
         # Pre-calculating mean and std for the bar chart
-        df_avg = filtered_df.groupby('risk_level')['interest_rate'].agg(['mean', 'std']).reset_index()
+        df_avg = filtered_df.groupby('risk_level')['interest_rate'].agg(['mean']).reset_index()
         
         fig_bar = px.bar(
             df_avg,
             x='risk_level',
             y='mean',
-            error_y='std', # Adds error bars to show risk/variance
             color='risk_level',
-            title="Avg Interest Rate (+/- Deviation)",
+            title="Avg Interest Rate",
             color_discrete_map=colors,
             text_auto='.2f'
         )
